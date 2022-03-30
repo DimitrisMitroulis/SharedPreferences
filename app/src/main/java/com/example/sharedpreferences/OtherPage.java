@@ -20,9 +20,12 @@ public class OtherPage extends MainActivity{
         TextView t1,t2;
         t1 = findViewById(R.id.name);
         t2 = findViewById(R.id.email);
-        SharedPreferences sp = getApplicationContext().getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
-        String name = sp.getString("name","");
-        String email = sp.getString("email","");
+
+        //SharedPreferences sp = getApplicationContext().getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
+        //String name = sp.getString("name","");
+        //String email = sp.getString("email","");
+        String name = "1";
+        String email = "2";
 
         t1.setText(name);
         t2.setText(email);

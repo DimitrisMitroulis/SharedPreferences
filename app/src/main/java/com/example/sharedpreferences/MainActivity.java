@@ -5,10 +5,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.StrictMode;
+import android.util.Log;
 import android.view.View;
 
 import androidx.navigation.NavController;
@@ -24,6 +33,23 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
@@ -33,10 +59,20 @@ public class MainActivity extends AppCompatActivity {
     Button SaveButton,button2;
     SharedPreferences sp;
     String nameStr,emailStr;
+    //private String sendUrl = "https://homeshoppingcartapp.000webhostapp.com/test/saveData.php";
+    private RequestQueue requestQueue;
+    private static final String TAG =MainActivity.class.getSimpleName();
+    int sucess;
+    private String TAG_SUCESS = "sucess";
+    private String TAG_MESSAGE = "message";
+    private String tag_json_obj = "json_obj_req";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -45,21 +81,23 @@ public class MainActivity extends AppCompatActivity {
         email = findViewById(R.id.EtEmail);
         SaveButton = findViewById(R.id.Save_Btn);
         button2 = findViewById(R.id.button2);
+        requestQueue= Volley.newRequestQueue(getApplicationContext());
+        //SaveButton.setOnClickListener();
 
-        //sp = getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
+        sp = getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
 
         SaveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                nameStr = name.getText().toString();
-                emailStr = email.getText().toString();
 
-                SharedPreferences.Editor editor =sp.edit();
-                editor.putString("email",emailStr);
-                editor.putString("name",nameStr);
-                editor.commit();
-                String saved = "Saved: "+ emailStr+ " name: "+nameStr;
-                Toast.makeText(MainActivity.this, saved, Toast.LENGTH_SHORT).show();
+                SaveButtonPressed(v);
+//                SharedPreferences.Editor editor =sp.edit();
+//                editor.putString("email",emailStr);
+//                editor.putString("name",nameStr);
+//                editor.commit();
+
+
+                //Toast.makeText(MainActivity.this, saved, Toast.LENGTH_SHORT).show();
 
 
             }
@@ -75,6 +113,16 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+    }
+
+    public void SaveButtonPressed(View view){
+        Toast.makeText(MainActivity.this, "saved", Toast.LENGTH_SHORT).show();
+        nameStr = name.getText().toString();
+        emailStr = email.getText().toString();
+        String type = "login";
+        BackgroundWorker backgroundWorker = new BackgroundWorker(this);
+        backgroundWorker.execute(type,nameStr,emailStr);
 
     }
 
@@ -99,6 +147,8 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
 
 
 }
