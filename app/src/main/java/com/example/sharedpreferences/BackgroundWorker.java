@@ -18,7 +18,7 @@ import java.net.URLEncoder;
 
 public class BackgroundWorker extends AsyncTask<String,Void,String> {
     Context context;
-
+    String url;
     AlertDialog dialog;
     BackgroundWorker (Context ctx){
         context = ctx;
@@ -31,9 +31,9 @@ public class BackgroundWorker extends AsyncTask<String,Void,String> {
         String emailStr = params[2];
 
         if(type.equals("login")){
-            String login_url = "https://homeshoppingcartapp.000webhostapp.com/test/saveData.php";
+            url = "https://homeshoppingcartapp.000webhostapp.com/test/insertData.php";
             try {
-                URL url = new URL(login_url);
+                URL url = new URL(this.url);
                 HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoInput(true);
