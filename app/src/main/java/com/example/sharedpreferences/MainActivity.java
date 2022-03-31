@@ -5,14 +5,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
-import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,10 +18,7 @@ import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 
 import com.example.sharedpreferences.databinding.ActivityMainBinding;
 
@@ -33,35 +28,23 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.StringReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
 
-    EditText name,email;
-    Button SaveButton,button2;
+    EditText name, email;
+    Button SaveButton, button2;
     SharedPreferences sp;
-    String nameStr,emailStr;
-    //private String sendUrl = "https://homeshoppingcartapp.000webhostapp.com/test/saveData.php";
-    private RequestQueue requestQueue;
-    private static final String TAG =MainActivity.class.getSimpleName();
+    String nameStr, emailStr;
+    private String sendUrl = "https://homeshoppingcartapp.000webhostapp.com/test/getData.php";
+    RequestQueue requestQueue;
+    JSONObject jsonObject = null;
+    private static final String TAG = MainActivity.class.getSimpleName();
     int sucess;
     private String TAG_SUCESS = "sucess";
     private String TAG_MESSAGE = "message";
@@ -81,7 +64,10 @@ public class MainActivity extends AppCompatActivity {
         email = findViewById(R.id.EtEmail);
         SaveButton = findViewById(R.id.Save_Btn);
         button2 = findViewById(R.id.button2);
-        requestQueue= Volley.newRequestQueue(getApplicationContext());
+        requestQueue = Volley.newRequestQueue(this);
+
+
+
         //SaveButton.setOnClickListener();
 
         sp = getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
@@ -90,7 +76,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                SaveButtonPressed(v);
+                //SaveButtonPressed(v);
+                parseJson();
+
 //                SharedPreferences.Editor editor =sp.edit();
 //                editor.putString("email",emailStr);
 //                editor.putString("name",nameStr);
@@ -107,8 +95,8 @@ public class MainActivity extends AppCompatActivity {
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               Intent intent = new Intent(MainActivity.this, OtherPage.class);
-               startActivity(intent);
+                Intent intent = new Intent(MainActivity.this, OtherPage.class);
+                startActivity(intent);
 
 
             }
@@ -116,13 +104,46 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void SaveButtonPressed(View view){
+    void parseJson(){
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, sendUrl, null, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                Log.i(TAG, "onResponse: " + response.toString());
+                try {
+                    for (int i = 0; i < response.length(); i++) {
+
+
+                        jsonObject = response.getJSONObject(i);
+
+                        String name = jsonObject.getString("name");
+                        String email = jsonObject.getString("email");
+
+                        Log.i(TAG, "onResponse: name: "+name);
+                        Log.i(TAG, "onResponse: email: "+ email);
+                        Log.i(TAG, "onResponse:------------------------------- ");
+
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+        requestQueue.add(jsonArrayRequest);
+    }
+
+    public void SaveButtonPressed(View view) {
         Toast.makeText(MainActivity.this, "saved", Toast.LENGTH_SHORT).show();
         nameStr = name.getText().toString();
         emailStr = email.getText().toString();
         String type = "login";
-        BackgroundWorker backgroundWorker = new BackgroundWorker(this);
-        backgroundWorker.execute(type,nameStr,emailStr);
+        InsertData insertData = new InsertData(this);
+        insertData.execute(type, nameStr, emailStr);
 
     }
 
@@ -147,8 +168,6 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-
 
 
 }
